@@ -21,41 +21,39 @@
 #include "endstone/actor/actor.h"
 #include "endstone/actor/item.h"
 #include "endstone/block/block.h"
+#include "endstone/identifier.h"
 #include "endstone/inventory/item_stack.h"
 #include "endstone/level/chunk.h"
 
 namespace endstone {
+
+class Dimension;
+using DimensionId = Identifier<Dimension>;
 
 /**
  * @brief Represents a dimension within a Level.
  */
 class Dimension {
 public:
-    /**
-     * @brief Represents various dimension types.
-     */
-    enum class Type {
-        Overworld = 0,
-        Nether = 1,
-        TheEnd = 2,
-        Custom = 999
-    };
+    static constexpr auto Overworld = DimensionId::minecraft("overworld");
+    static constexpr auto Nether = DimensionId::minecraft("nether");
+    static constexpr auto TheEnd = DimensionId::minecraft("the_end");
 
     virtual ~Dimension() = default;
 
     /**
-     * @brief Gets the name of this dimension
+     * @brief Return the identifier of this dimension.
      *
-     * @return Name of this dimension
+     * @return this dimension's identifier
      */
-    [[nodiscard]] virtual std::string getName() const = 0;
+    [[nodiscard]] virtual DimensionId getId() const = 0;
 
     /**
-     * @brief Gets the type of this dimension
+     * @brief Get the translation key, suitable for use in a translation component.
      *
-     * @return Type of this dimension
+     * @return the translation key
      */
-    [[nodiscard]] virtual Type getType() const = 0;
+    [[nodiscard]] virtual std::string getTranslationKey() const = 0;
 
     /**
      * @brief Gets the level to which this dimension belongs
@@ -150,7 +148,7 @@ inline std::unique_ptr<Block> Location::getBlock() const
 inline float Location::distanceSquared(const Location &other) const
 {
     Preconditions::checkArgument(dimension_ == other.dimension_, "Cannot measure distance between {} and {}.",
-                                 dimension_->getName(), other.dimension_->getName());
+                                 dimension_->getId(), other.dimension_->getId());
     return ((x_ - other.x_) * (x_ - other.x_)) + ((y_ - other.y_) * (y_ - other.y_)) +
            ((z_ - other.z_) * (z_ - other.z_));
 }
@@ -161,6 +159,6 @@ struct fmt::formatter<endstone::Dimension> : formatter<string_view> {
     template <typename FormatContext>
     auto format(const endstone::Dimension &self, FormatContext &ctx) const -> format_context::iterator
     {
-        return fmt::format_to(ctx.out(), "Dimension(name={})", self.getName());
+        return fmt::format_to(ctx.out(), "Dimension(id={})", self.getId());
     }
 };
